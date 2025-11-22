@@ -1,0 +1,15 @@
+# Maven
+target/
+pom.xml.tag
+pom.xml.bak
+release.properties
+dependency-check-report.html
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+
+# Logs
+*.log
+log/
