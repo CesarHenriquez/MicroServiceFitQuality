@@ -1,5 +1,7 @@
 package com.microservicio.registrousuario.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -29,7 +31,7 @@ public class Usuario {
     @Column(name = "nickname", nullable = false, unique = true, length = 50)
     @Schema(description = "Nickname del usuario", example = "usuario123")
     private String nickname;
-
+    @JsonProperty(access = JsonProperty.Access.READ_WRITE) // Permite leer y escribir el valor.
     @Column(name = "clave", nullable = false)
     @Schema(description = "Clave del usuario", example = "claveSegura123")
     private String clave;

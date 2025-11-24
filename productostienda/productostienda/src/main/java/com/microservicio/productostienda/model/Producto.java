@@ -37,6 +37,15 @@ public class Producto {
     @Column(name = "precio", nullable = false)
     @Schema(description = "Precio del producto", example = "49.99")
     private Double precio;
+   
+    @Column(name = "stock", nullable = false)
+    @Schema(description = "Stock del producto", example = "50")
+    private Integer stock = 0; // Valor por defecto
+
+
+    @Column(name = "imagen_uri", length = 255)
+    @Schema(description = "URI o nombre de archivo de la imagen (Web o Local)", example = "cinturon_fit.jpg")
+    private String imagenUri;
 
     @ManyToOne
     @JoinColumn(name = "categoria_id", nullable = false)

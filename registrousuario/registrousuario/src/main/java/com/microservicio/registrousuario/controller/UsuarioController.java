@@ -1,6 +1,7 @@
 package com.microservicio.registrousuario.controller;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Arrays;
 
@@ -22,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.microservicio.registrousuario.model.Usuario;
 import com.microservicio.registrousuario.service.UsuarioService;
-import com.microservicio.registrousuario.util.JwtUtil; 
+import com.microservicio.registrousuario.util.JwtUtil;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -39,98 +40,134 @@ public class UsuarioController {
         this.jwtUtil = jwtUtil;
     }
 
-    // Lógica de Autorización Manual
+   
+
     private ResponseEntity<String> validarRol(String authorizationHeader, String... requiredRoles) {
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token JWT no proporcionado o formato inválido.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Token JWT no proporcionado o formato inválido.");
         }
-        
+
         String rol = jwtUtil.extractRole(authorizationHeader);
-        
+
         if (rol == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token JWT inválido o expirado.");
         }
-        
+
         boolean roleAllowed = Arrays.stream(requiredRoles)
-                                    .anyMatch(r -> r.equalsIgnoreCase(rol));
+                .anyMatch(r -> r.equalsIgnoreCase(rol));
 
         if (!roleAllowed) {
             String rolesStr = Arrays.toString(requiredRoles).replaceAll("[\\[\\]]", "");
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Acceso denegado: solo roles " + rolesStr + " pueden realizar esta acción.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Acceso denegado: solo roles " + rolesStr + " pueden realizar esta acción.");
         }
-        
+
         return null; // Éxito
     }
-    
-    // Endpoint para Microservicios Internos y Login (PÚBLICO)
-    @GetMapping("/interno/nickname/{nickname}")
-    @ResponseStatus(HttpStatus.OK) 
-    public Usuario buscarPorNicknameInterno(@PathVariable String nickname) {
-        // Este endpoint es usado por el servicio 8021 para obtener datos antes de generar el token.
-        return usuarioService.buscarPorNickname(nickname); 
-    }
 
-    @Operation(summary = "Registrar un nuevo usuario", description = "Crea un nuevo usuario en el sistema")
-    @PostMapping
-    public ResponseEntity<?> registrar(
-        @RequestBody Usuario usuario,
-        @RequestHeader("Authorization") String authorizationHeader
-    ) {
-        // Restricción: Solo ADMINISTRADOR
-        ResponseEntity<String> validationResult = validarRol(authorizationHeader, "ADMINISTRADOR");
-        if (validationResult != null) {
-            return validationResult;
+    @GetMapping("/interno/nickname/{nickname}")
+    @ResponseStatus(HttpStatus.OK)
+    public Usuario buscarPorNicknameInterno(@PathVariable String nickname) {
+       
+        return usuarioService.buscarPorNickname(nickname);
+    }
+  
+    @Operation(summary = "Actualizar solo la clave", description = "Actualiza la clave de un usuario por su email")
+    @PutMapping("/clave/{email}")
+    public ResponseEntity<?> actualizarClave(@PathVariable String email, @RequestBody Map<String, String> payload) {
+        String nuevaClave = payload.get("nuevaClave");
+
+        if (nuevaClave == null || nuevaClave.trim().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Falta el campo 'nuevaClave'.");
         }
 
         try {
-            Usuario creado = usuarioService.crearUsuario(usuario);
-            return ResponseEntity.status(HttpStatus.CREATED).body(creado); 
+            Usuario actualizado = usuarioService.actualizarClavePorEmail(email, nuevaClave);
+            if (actualizado == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado para actualizar clave.");
+            }
+            return ResponseEntity.ok("Clave actualizada con éxito.");
         } catch (Exception e) {
-             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error al crear usuario: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al actualizar la clave: " + e.getMessage());
         }
     }
+
+   
+    @GetMapping("/interno/email/{email}")
+    public ResponseEntity<Usuario> buscarPorEmailInterno(@PathVariable String email) {
+        Usuario usuario = usuarioService.buscarPorCorreo(email);
+
+        if (usuario == null) {
+           
+            return ResponseEntity.notFound().build();
+        }
+
+       
+        return ResponseEntity.ok(usuario);
+    }
+   
+    @Operation(summary = "Registrar un nuevo usuario", description = "Crea un nuevo usuario en el sistema")
+    @PostMapping
+    public ResponseEntity<?> registrar(
+            @RequestBody Usuario usuario
+    
+    ) {
+      
+
+        try {
+           
+           
+            Usuario creado = usuarioService.crearUsuario(usuario);
+            return ResponseEntity.status(HttpStatus.CREATED).body(creado);
+        } catch (Exception e) {
+          
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error al crear usuario: " + e.getMessage());
+        }
+    }
+    
 
     @Operation(summary = "Listar todos los usuarios", description = "Obtiene una lista de todos los usuarios registrados")
     @GetMapping
     public ResponseEntity<?> listar(@RequestHeader("Authorization") String authorizationHeader) {
-        // Restricción: Solo ADMINISTRADOR
+       
         ResponseEntity<String> validationResult = validarRol(authorizationHeader, "ADMINISTRADOR");
         if (validationResult != null) {
             return validationResult;
         }
 
         List<Usuario> usuarios = usuarioService.listarUsuarios();
-        return ResponseEntity.ok(usuarios); 
+        return ResponseEntity.ok(usuarios);
     }
+
+    
 
     @Operation(summary = "Obtener usuario por ID", description = "Obtiene un usuario específico por su ID")
     @GetMapping("/{id}")
     public ResponseEntity<?> obtener(
-        @PathVariable Long id,
-        @RequestHeader("Authorization") String authorizationHeader
-    ) {
-        // Restricción: ADMINISTRADOR o DELIVERY
+            @PathVariable Long id,
+            @RequestHeader("Authorization") String authorizationHeader) {
+      
         ResponseEntity<String> validationResult = validarRol(authorizationHeader, "ADMINISTRADOR", "DELIVERY");
         if (validationResult != null) {
             return validationResult;
         }
-        
+
         Optional<Usuario> optional = usuarioService.obtenerPorId(id);
         Usuario usuario = optional.orElse(null);
         if (usuario == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado.");
         }
-        
-        return ResponseEntity.ok(usuario); 
+
+        return ResponseEntity.ok(usuario);
     }
-    
+
     @Operation(summary = "Actualizar usuario", description = "Actualiza los datos de un usuario existente")
     @PutMapping("/{id}")
     public ResponseEntity<?> actualizar(
-        @PathVariable Long id, 
-        @RequestBody Usuario usuario,
-        @RequestHeader("Authorization") String authorizationHeader
-    ) {
+            @PathVariable Long id,
+            @RequestBody Usuario usuario,
+            @RequestHeader("Authorization") String authorizationHeader) {
         // Restricción: Solo ADMINISTRADOR
         ResponseEntity<String> validationResult = validarRol(authorizationHeader, "ADMINISTRADOR");
         if (validationResult != null) {
@@ -139,23 +176,22 @@ public class UsuarioController {
 
         Usuario actualizado = usuarioService.actualizarUsuario(id, usuario);
         if (actualizado == null) {
-             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado para actualizar.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado para actualizar.");
         }
-        return ResponseEntity.ok(actualizado); 
+        return ResponseEntity.ok(actualizado);
     }
 
     @Operation(summary = "Eliminar usuario", description = "Elimina un usuario del sistema por su ID")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> eliminar(
-        @PathVariable Long id,
-        @RequestHeader("Authorization") String authorizationHeader
-    ) {
-        // Restricción: Solo ADMINISTRADOR
+            @PathVariable Long id,
+            @RequestHeader("Authorization") String authorizationHeader) {
+        
         ResponseEntity<String> validationResult = validarRol(authorizationHeader, "ADMINISTRADOR");
         if (validationResult != null) {
             return validationResult;
         }
-        
+
         usuarioService.eliminarUsuario(id);
         return ResponseEntity.noContent().build();
     }

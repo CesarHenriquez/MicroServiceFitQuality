@@ -42,6 +42,14 @@ public class Venta {
     @Column(name = "fecha", nullable = false)
     @Schema(description = "Fecha de la venta", example = "2023-10-01")
     private LocalDate fecha;
+    // ⬇️ NUEVOS CAMPOS ⬇️
+    @Column(name = "delivered", nullable = false)
+    @Schema(description = "Estado de entrega de la venta", example = "false")
+    private Boolean delivered = false;
+
+    @Column(name = "proof_uri", length = 255)
+    @Schema(description = "URI del comprobante de entrega", example = "content://...")
+    private String proofUri;
 
     @OneToMany(mappedBy = "venta", cascade = CascadeType.ALL)
     @JsonManagedReference

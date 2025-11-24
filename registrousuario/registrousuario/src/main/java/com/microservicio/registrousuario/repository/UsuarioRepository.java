@@ -8,5 +8,6 @@ import com.microservicio.registrousuario.model.Usuario;
 
 public interface UsuarioRepository extends JpaRepository <Usuario, Long> {
      Optional<Usuario> findByNickname(String nickname);
+     Optional<Usuario> findByCorreo(String correo);
 
 }

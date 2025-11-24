@@ -13,19 +13,19 @@ import io.jsonwebtoken.SignatureAlgorithm;
 
 @Component
 public class JwtUtil {
-    // Clave secreta para firmar el JWT
+   
     
     private final String SECRET_KEY = "EstaEsMiClaveSuperSecretaParaFirmarLosJWTs1234567890";
 
-    // Tiempo de vida del token 
-    private final long EXPIRATION_TIME = 1000 * 60 * 60 * 10; // 10 horas en milisegundos
+   
+    private final long EXPIRATION_TIME = 1000 * 60 * 60 * 10; 
 
     public String generateToken(Usuario usuario) {
         Map<String, Object> claims = new HashMap<>();
         
-        //el ID y el Rol del usuario en los claims (cuerpo) del token
+       
         claims.put("userId", usuario.getId());
-        claims.put("rol", usuario.getRol().getNombre()); // Usa el nombre del rol completo: ADMINISTRADOR, CLIENTE, DELIVERY
+        claims.put("rol", usuario.getRol().getNombre()); 
         
         return createToken(claims, usuario.getNickname());
     }
@@ -34,9 +34,9 @@ public class JwtUtil {
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(subject) 
-                .setIssuedAt(new Date(System.currentTimeMillis())) // Fecha de emisión
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME)) // Fecha de expiración
-                .signWith(SignatureAlgorithm.HS256, SECRET_KEY) // Algoritmo y clave secreta
+                .setIssuedAt(new Date(System.currentTimeMillis())) 
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME)) 
+                .signWith(SignatureAlgorithm.HS256, SECRET_KEY) 
                 .compact();
     }
 

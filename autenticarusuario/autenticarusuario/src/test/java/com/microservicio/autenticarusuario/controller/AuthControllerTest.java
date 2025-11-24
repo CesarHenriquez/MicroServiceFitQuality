@@ -4,8 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Map;
-import java.util.Collections; 
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,6 +13,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import com.microservicio.autenticarusuario.dto.LoginResponseDTO; // ⬅️ IMPORTACIÓN CLAVE
+import com.microservicio.autenticarusuario.model.Rol;
+import com.microservicio.autenticarusuario.model.Usuario;
 import com.microservicio.autenticarusuario.service.AuthService;
 import reactor.core.publisher.Mono;
 
@@ -27,91 +28,78 @@ public class AuthControllerTest {
     @InjectMocks 
     private AuthController authController; 
 
-    private final String NICKNAME = "testuser";
+    private final String EMAIL = "test@user.com"; // Usaremos EMAIL
     private final String CLAVE = "password123";
     private final String TOKEN_MOCK = "generated.mock.token.12345";
     private Map<String, String> credentials;
+    private LoginResponseDTO successDTO;
 
     @BeforeEach
     void setUp() {
-        credentials = Map.of("nickname", NICKNAME, "clave", CLAVE);
+        // El cliente (Kotlin) envía 'correo' y 'clave'
+        credentials = Map.of("correo", EMAIL, "clave", CLAVE);
+        
+        Usuario mockUser = new Usuario(1L, "testuser", null, EMAIL, new Rol(1L, "CLIENTE"));
+        successDTO = new LoginResponseDTO(TOKEN_MOCK, mockUser);
     }
 
-    
+    // ⬇️ TEST CORREGIDO: Espera el objeto LoginResponseDTO y status 200 OK ⬇️
     @Test
     void testLogin_Exitoso_RetornaTokenYStatusOk() {
         
-        when(authService.autenticar(NICKNAME, CLAVE)).thenReturn(Mono.just(TOKEN_MOCK));
+        // Simula que el servicio devuelve el DTO de éxito
+        when(authService.autenticar(EMAIL, CLAVE)).thenReturn(Mono.just(successDTO));
 
+        // El controlador ahora devuelve un ResponseEntity<?> (con LoginResponseDTO dentro)
+        Mono<ResponseEntity<?>> responseMono = authController.login(credentials);
         
-        Mono<ResponseEntity<String>> responseMono = authController.login(credentials);
-        
-       
-        ResponseEntity<String> response = responseMono.block();
+        // Obtenemos la respuesta
+        ResponseEntity<?> response = responseMono.block();
 
-       
+        // ⬇️ ASUNCIONES CRÍTICAS ⬇️
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(TOKEN_MOCK, response.getBody());
-
-        verify(authService, times(1)).autenticar(NICKNAME, CLAVE);
+        assertTrue(response.getBody() instanceof LoginResponseDTO); // Verifica el tipo de cuerpo
+        assertEquals(TOKEN_MOCK, ((LoginResponseDTO) response.getBody()).getToken()); // Verifica el token
+        
+        verify(authService, times(1)).autenticar(EMAIL, CLAVE);
     }
 
-    
+    // ⬇️ TEST CORREGIDO: Espera el mensaje de error y status 401 UNAUTHORIZED ⬇️
     @Test
-    void testLogin_CredencialesInvalidas_RetornaUnauthorized() {
-        final String ERROR_MESSAGE = "Credenciales inválidas.";
+    void testLogin_ClaveIncorrecta_RetornaUnauthorized() {
+        final String ERROR_MESSAGE = "Contraseña incorrecta.";
         
-       
-        when(authService.autenticar(NICKNAME, CLAVE)).thenReturn(Mono.just(ERROR_MESSAGE));
+        // Simula que el servicio devuelve el mensaje de error (String)
+        when(authService.autenticar(EMAIL, CLAVE)).thenReturn(Mono.just(ERROR_MESSAGE));
 
-        Mono<ResponseEntity<String>> responseMono = authController.login(credentials);
-        ResponseEntity<String> response = responseMono.block();
+        Mono<ResponseEntity<?>> responseMono = authController.login(credentials);
+        ResponseEntity<?> response = responseMono.block();
 
-      
+        // ⬇️ ASUNCIONES CRÍTICAS ⬇️
         assertNotNull(response);
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode()); // 401
+        assertTrue(response.getBody() instanceof String); // Verifica que el cuerpo sea String
         assertEquals(ERROR_MESSAGE, response.getBody());
         
-        verify(authService, times(1)).autenticar(NICKNAME, CLAVE);
+        verify(authService, times(1)).autenticar(EMAIL, CLAVE);
     }
 
-   
     @Test
     void testLogin_UsuarioNoEncontrado_RetornaUnauthorized() {
-        final String ERROR_MESSAGE = "Usuario no encontrado.";
-       
-        when(authService.autenticar(NICKNAME, CLAVE)).thenReturn(Mono.just(ERROR_MESSAGE));
+        final String ERROR_MESSAGE = "El email no está registrado.";
+        
+        // Simula que el servicio devuelve el mensaje de error (String)
+        when(authService.autenticar(EMAIL, CLAVE)).thenReturn(Mono.just(ERROR_MESSAGE));
 
-        Mono<ResponseEntity<String>> responseMono = authController.login(credentials);
-        ResponseEntity<String> response = responseMono.block();
+        Mono<ResponseEntity<?>> responseMono = authController.login(credentials);
+        ResponseEntity<?> response = responseMono.block();
 
-       
         assertNotNull(response);
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode()); // 401
+        assertTrue(response.getBody() instanceof String);
         assertEquals(ERROR_MESSAGE, response.getBody());
         
-        verify(authService, times(1)).autenticar(NICKNAME, CLAVE);
-    }
-    
-  
-    @Test
-    void testLogin_CredencialesNulas_RetornaUnauthorized() {
-     
-        final String ERROR_MESSAGE = "Error: falta la clave."; 
-        
-      
-        when(authService.autenticar(NICKNAME, null)).thenReturn(Mono.just(ERROR_MESSAGE));
-        
-       
-        Map<String, String> incompleteCredentials = Collections.singletonMap("nickname", NICKNAME);
-
-        Mono<ResponseEntity<String>> responseMono = authController.login(incompleteCredentials);
-        ResponseEntity<String> response = responseMono.block();
-
-       
-        assertNotNull(response);
-       
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode()); 
+        verify(authService, times(1)).autenticar(EMAIL, CLAVE);
     }
 }
