@@ -79,12 +79,12 @@ public class VentaControllerTest {
         when(jwtUtil.extractUserId(INVALID_TOKEN)).thenReturn(null);
         when(jwtUtil.extractRole(INVALID_TOKEN)).thenReturn(null);
         
-        // Mock para simular un registro exitoso desde el Service
+        
         doReturn(ResponseEntity.status(HttpStatus.CREATED).body(venta))
              .when(ventaService)
              .registrarVenta(eq(CLIENTE_ID), eq("CLIENTE"), anyMap());
              
-        // Mock para simular un fallo de autorización desde el Service
+       
         doReturn(ResponseEntity.status(HttpStatus.FORBIDDEN).body("Solo CLIENTES pueden realizar ventas."))
              .when(ventaService)
              .registrarVenta(eq(CLIENTE_ID), eq("ADMINISTRADOR"), anyMap());

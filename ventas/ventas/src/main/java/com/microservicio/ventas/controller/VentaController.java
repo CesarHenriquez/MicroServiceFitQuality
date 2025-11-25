@@ -27,14 +27,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 @RequestMapping("/api/ventas")
 public class VentaController {
     private final VentaService ventaService;
-    private final JwtUtil jwtUtil; // Se mantiene por si Delivery lo usa, aunque no es crítico aquí.
+    private final JwtUtil jwtUtil; 
 
     public VentaController(VentaService ventaService, JwtUtil jwtUtil) {
         this.ventaService = ventaService;
         this.jwtUtil = jwtUtil;
     }
 
-    // ⬇️ MÉTODO MODIFICADO: SIN TOKEN, TOMA EL ID DEL JSON ⬇️
+
     @Operation(summary = "Registrar una nueva venta (Sin Token)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Venta registrada exitosamente"),
@@ -43,15 +43,15 @@ public class VentaController {
     @PostMapping
     public ResponseEntity<?> registrarVenta(@RequestBody Map<String, Object> payload) {
         try {
-            // 1. Validar que venga el usuarioId en el cuerpo
+           
             if (!payload.containsKey("usuarioId")) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Falta el campo 'usuarioId' en el JSON.");
             }
 
-            // 2. Extraer ID directamente del JSON (Android lo envía como 'usuarioId')
+           
             Long usuarioId = Long.valueOf(payload.get("usuarioId").toString());
 
-            // 3. Asumimos rol CLIENTE por defecto para simplificar
+            
             String rol = "CLIENTE";
 
             return ventaService.registrarVenta(usuarioId, rol, payload);
@@ -74,7 +74,7 @@ public class VentaController {
         return ventaService.listarDetalles();
     }
 
-    // Método simplificado de historial (ya lo tenías)
+    
     @GetMapping("/usuario/{id}")
     public ResponseEntity<?> listarPorUsuario(@PathVariable Long id) {
         try {
@@ -108,13 +108,13 @@ public class VentaController {
         }
     }
 
-    // Endpoint de Delivery (Se mantiene igual o se puede simplificar si quieres)
+    
     @PutMapping("/{id}/proof")
     public ResponseEntity<?> setDeliveryProof(
             @PathVariable Long id,
             @RequestBody Map<String, String> payload) {
 
-        // Simplificado: Sin validación de token para evitar problemas
+        
         String proofUri = payload.get("proofUri");
         if (proofUri == null || proofUri.trim().isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Falta 'proofUri'.");

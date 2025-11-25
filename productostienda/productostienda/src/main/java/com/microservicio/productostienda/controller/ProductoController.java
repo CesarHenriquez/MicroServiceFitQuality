@@ -40,7 +40,7 @@ public class ProductoController {
         @ApiResponse(responseCode = "200", description = "Lista de productos obtenida correctamente"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    // ⬇️ Acceso público (Cliente) ⬇️
+    
     @GetMapping
     public List<Producto> listar() {
         return productoService.listarProductos();
@@ -68,7 +68,7 @@ public class ProductoController {
     @PostMapping
     public ResponseEntity<?> crear(
         @RequestBody Map<String, Object> payload, 
-        @RequestHeader(value = "Authorization", required = false) String authorizationHeader // Dejamos el header opcional para Swagger
+        @RequestHeader(value = "Authorization", required = false) String authorizationHeader 
     ) {
 
         try {
@@ -76,9 +76,9 @@ public class ProductoController {
             producto.setNombre((String) payload.get("nombre"));
             producto.setDescripcion((String) payload.get("descripcion"));
             producto.setPrecio(Double.valueOf(payload.get("precio").toString()));
-            // Asumiendo que stock se maneja aquí:
+            
             producto.setStock(Integer.valueOf(payload.get("stock").toString())); 
-            // Asumiendo que imagenUri se maneja aquí:
+           
             producto.setImagenUri((String) payload.get("imagenUri"));
 
             Categoria categoria = new Categoria();
@@ -105,7 +105,7 @@ public class ProductoController {
     public ResponseEntity<?> editar(
         @PathVariable Long id, 
         @RequestBody Map<String, Object> payload,
-        @RequestHeader(value = "Authorization", required = false) String authorizationHeader // Dejamos el header opcional para Swagger
+        @RequestHeader(value = "Authorization", required = false) String authorizationHeader 
     ) {
 
         try {
@@ -140,7 +140,7 @@ public class ProductoController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> eliminar(
         @PathVariable Long id,
-        @RequestHeader(value = "Authorization", required = false) String authorizationHeader // Dejamos el header opcional para Swagger
+        @RequestHeader(value = "Authorization", required = false) String authorizationHeader 
     ) {
         
         try {

@@ -28,16 +28,16 @@ public class LoadDataBase {
                                         .orElseGet(() -> rolRepository.save(new Rol(null, "ADMINISTRADOR")));
 
                         // 2. INSERCIÓN DEL USUARIO ADMINISTRADOR
-                        // Verificamos si admin1 existe.
+                       
                         if (usuarioRepository.findByNickname("admin1").isEmpty() && adminRol != null) {
 
-                                // ⬇️ CAMBIO: Generamos el hash de "12345" dinámicamente ⬇️
+                               
                                 String passAdmin = passwordEncoder.encode("12345");
 
                                 Usuario admin = new Usuario(
                                                 null,
                                                 "admin1",
-                                                passAdmin, // Usamos la clave generada
+                                                passAdmin, 
                                                 "admin@bootstrap.com",
                                                 adminRol);
                                 usuarioRepository.save(admin);

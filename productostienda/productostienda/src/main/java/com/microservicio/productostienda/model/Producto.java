@@ -40,7 +40,7 @@ public class Producto {
    
     @Column(name = "stock", nullable = false)
     @Schema(description = "Stock del producto", example = "50")
-    private Integer stock = 0; // Valor por defecto
+    private Integer stock = 0; 
 
 
     @Column(name = "imagen_uri", length = 255)

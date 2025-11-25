@@ -33,11 +33,11 @@ public class DetalleVentaServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Inicialización de Venta (solo necesita ID)
+       
         ventaMock = new Venta();
         ventaMock.setId(1L);
         
-        // Inicialización del DetalleVenta
+       
         detalleVenta1 = new DetalleVenta();
         detalleVenta1.setId(DETALLE_ID);
         detalleVenta1.setVenta(ventaMock);
@@ -46,7 +46,7 @@ public class DetalleVentaServiceTest {
         detalleVenta1.setPrecioUnitario(50.0);
     }
 
-    // --- TEST 1: Listar todos los detalles ---
+    
     @Test
     void testListarDetalles_RetornaLista() {
         DetalleVenta detalleVenta2 = new DetalleVenta();
@@ -62,7 +62,7 @@ public class DetalleVentaServiceTest {
         verify(detalleVentaRepository, times(1)).findAll();
     }
 
-    // --- TEST 2: Obtener por ID - Encontrado ---
+    
     @Test
     void testObtenerPorId_Encontrado_RetornaObjeto() {
         when(detalleVentaRepository.findById(DETALLE_ID)).thenReturn(Optional.of(detalleVenta1));
@@ -75,7 +75,7 @@ public class DetalleVentaServiceTest {
         verify(detalleVentaRepository, times(1)).findById(DETALLE_ID);
     }
 
-    // --- TEST 3: Obtener por ID - No Encontrado ---
+    
     @Test
     void testObtenerPorId_NoEncontrado_RetornaNull() {
         final Long ID_INEXISTENTE = 99L;

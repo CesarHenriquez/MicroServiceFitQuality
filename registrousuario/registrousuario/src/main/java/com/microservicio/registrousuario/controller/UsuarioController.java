@@ -168,7 +168,7 @@ public class UsuarioController {
             @PathVariable Long id,
             @RequestBody Usuario usuario,
             @RequestHeader("Authorization") String authorizationHeader) {
-        // Restricción: Solo ADMINISTRADOR
+        
         ResponseEntity<String> validationResult = validarRol(authorizationHeader, "ADMINISTRADOR");
         if (validationResult != null) {
             return validationResult;

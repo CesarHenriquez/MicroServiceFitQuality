@@ -25,7 +25,7 @@ import com.microservicio.productostienda.service.ProductoService;
 import com.microservicio.productostienda.util.JwtUtil;
 
 @WebMvcTest(ProductoController.class)
-// Deshabilita la seguridad para que los tests de permisos sean explícitos con JWT
+
 @AutoConfigureMockMvc(addFilters = false) 
 public class ProductoControllerTest {
 
@@ -52,18 +52,18 @@ public class ProductoControllerTest {
     void setUp() throws Exception {
         Categoria categoria = new Categoria(1L, "Calzado");
         
-        // ⬇️ AJUSTE 1: Incluir los nuevos campos 'stock' (10) e 'imagenUri' (null o una cadena)
+       
         producto = new Producto(10L, "Zapatillas Air", "Correr", 150.0, 
-                                10, "zapatillas.jpg", categoria); // Constructor ajustado
+                                10, "zapatillas.jpg", categoria); 
 
         
         Map<String, Object> payload = new HashMap<>();
         payload.put("nombre", "Zapatillas Air");
         payload.put("descripcion", "Correr");
         payload.put("precio", 150.0);
-        // ⬇️ AJUSTE 2: Incluir el nuevo campo 'stock' en el payload de la petición (Map)
+        
         payload.put("stock", 10); 
-        // Nota: 'imagenUri' no se necesita en el payload si es opcional o se maneja aparte.
+        
         payload.put("categoriaId", 1L);
         productoPayloadJson = objectMapper.writeValueAsString(payload);
         
@@ -74,7 +74,7 @@ public class ProductoControllerTest {
     }
 
     
-    // Test: Listar productos (Acceso público)
+   
     @Test
     void testListarProductos_RetornaOk() throws Exception {
         when(productoService.listarProductos()).thenReturn(Arrays.asList(producto));
@@ -87,7 +87,7 @@ public class ProductoControllerTest {
         verify(productoService, times(1)).listarProductos();
     }
     
-    // Test: Obtener por ID (Acceso público)
+   
     @Test
     void testObtenerProductoPorId_Encontrado_RetornaOk() throws Exception {
         when(productoService.obtenerPorId(10L)).thenReturn(Optional.of(producto));
@@ -96,7 +96,7 @@ public class ProductoControllerTest {
                 .andExpect(status().isOk());
     }
 
-    // Test: Obtener por ID (No encontrado)
+    
     @Test
     void testObtenerProductoPorId_NoEncontrado_RetornaNotFound() throws Exception {
         when(productoService.obtenerPorId(99L)).thenReturn(Optional.empty());
@@ -106,7 +106,7 @@ public class ProductoControllerTest {
     }
     
     
-    // Test: Crear producto (Acceso ADMIN)
+   
     @Test
     void testCrearProducto_ComoAdmin_RetornaCreated() throws Exception {
         when(productoService.guardarProducto(any(Producto.class))).thenReturn(producto);
@@ -121,7 +121,7 @@ public class ProductoControllerTest {
         verify(productoService, times(1)).guardarProducto(any(Producto.class));
     }
 
-    // Test: Crear producto (Acceso CLIENTE - Prohibido)
+    
     @Test
     void testCrearProducto_ComoCliente_RetornaForbidden() throws Exception {
         mockMvc.perform(post("/api/productos")
@@ -134,7 +134,7 @@ public class ProductoControllerTest {
         verify(productoService, never()).guardarProducto(any(Producto.class));
     }
     
-    // Test: Crear producto (Token inválido - No autorizado)
+    
     @Test
     void testCrearProducto_TokenInvalido_RetornaUnauthorized() throws Exception {
         mockMvc.perform(post("/api/productos")
@@ -148,7 +148,7 @@ public class ProductoControllerTest {
     }
 
     
-    // Test: Editar producto (Acceso ADMIN - Encontrado)
+    
     @Test
     void testEditarProducto_ComoAdmin_RetornaOk() throws Exception {
         when(productoService.obtenerPorId(10L)).thenReturn(Optional.of(producto));
@@ -164,7 +164,7 @@ public class ProductoControllerTest {
         verify(productoService, times(1)).guardarProducto(any(Producto.class));
     }
     
-    // Test: Editar producto (Acceso ADMIN - No encontrado)
+    
     @Test
     void testEditarProducto_NoEncontrado_RetornaNotFound() throws Exception {
         when(productoService.obtenerPorId(99L)).thenReturn(Optional.empty());
@@ -179,7 +179,7 @@ public class ProductoControllerTest {
         verify(productoService, never()).guardarProducto(any(Producto.class));
     }
 
-    // Test: Eliminar producto (Acceso ADMIN)
+   
     @Test
     void testEliminarProducto_ComoAdmin_RetornaNoContent() throws Exception {
         mockMvc.perform(delete("/api/productos/{id}", 10L)
@@ -190,7 +190,7 @@ public class ProductoControllerTest {
         verify(productoService, times(1)).eliminarProducto(10L);
     }
 
-    // Test: Eliminar producto (Acceso CLIENTE - Prohibido)
+    
     @Test
     void testEliminarProducto_ComoCliente_RetornaForbidden() throws Exception {
         mockMvc.perform(delete("/api/productos/{id}", 10L)

@@ -56,19 +56,19 @@ public class VentaServiceTest {
     
     @BeforeEach
     void setUp() {
-        // Objeto producto devuelto por el cliente
+      
         productoMock = new Producto();
         productoMock.setId(PRODUCTO_ID);
         productoMock.setPrecio(50.0);
         
-        // Objeto venta simulado al guardar (con ID)
+       
         ventaGuardada = new Venta();
         ventaGuardada.setId(10L);
         ventaGuardada.setUsuarioId(CLIENTE_ID);
         ventaGuardada.setDireccionId(DIRECCION_ID);
         ventaGuardada.setFecha(LocalDate.now());
 
-        // Payload de entrada para registrarVenta
+       
         Map<String, Object> detalle1 = new HashMap<>();
         detalle1.put("productoId", PRODUCTO_ID);
         detalle1.put("cantidad", 2);
@@ -81,11 +81,11 @@ public class VentaServiceTest {
     
     @Test
     void testRegistrarVenta_RolCliente_Exito() {
-        // 1. Simular la obtención exitosa del producto
+       
         when(productoClient.obtenerProductoPorId(PRODUCTO_ID)).thenReturn(Mono.just(productoMock));
-        // 2. Simular el guardado de Venta (asigna el ID 10L)
+        
         when(ventaRepository.save(any(Venta.class))).thenReturn(ventaGuardada);
-        // 3. Simular el guardado del Detalle
+       
         when(detalleVentaRepository.save(any(DetalleVenta.class))).thenAnswer(invocation -> {
             DetalleVenta dv = invocation.getArgument(0);
             dv.setId(1L);
@@ -96,7 +96,7 @@ public class VentaServiceTest {
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         
-        // Verificar llamadas clave
+       
         verify(ventaRepository, times(1)).save(any(Venta.class));
         verify(detalleVentaRepository, times(1)).save(any(DetalleVenta.class));
         verify(productoClient, times(1)).obtenerProductoPorId(PRODUCTO_ID);

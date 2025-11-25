@@ -136,12 +136,12 @@ public class VentaService {
 
         return productos;
     }
-    // ⬇️ NUEVO MÉTODO PARA DELIVERY ⬇️
+   
     @Transactional
     public Venta setProofAndMarkDelivered(Long ventaId, String proofUri) {
         return ventaRepository.findById(ventaId).map(venta -> {
             venta.setProofUri(proofUri);
-            venta.setDelivered(true); // Se marca como entregada al subir el comprobante
+            venta.setDelivered(true); 
             return ventaRepository.save(venta);
         }).orElse(null);
     }

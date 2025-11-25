@@ -49,10 +49,10 @@ public class AuthController {
         return authService.autenticar(email, clave)
                 .map(resultado -> {
                     if (resultado instanceof LoginResponseDTO) {
-                        // Éxito: Devuelve el objeto DTO y status 200
+                        
                         return ResponseEntity.ok((LoginResponseDTO) resultado);
                     } else {
-                        // Error: Devuelve el String de error y status 401
+                        
                         String error = (String) resultado;
                         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
                     }
@@ -68,7 +68,7 @@ public class AuthController {
 
         return userMono.map(user -> ResponseEntity.ok(user))
                 .defaultIfEmpty(ResponseEntity.notFound().build())
-                .block(); // Usar .block() si no es una cadena Mono
+                .block(); 
     }
 
 }
